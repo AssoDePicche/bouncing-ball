@@ -47,20 +47,20 @@ struct Ball *Ball(void) {
   struct Ball *ball = (struct Ball *)malloc(sizeof(struct Ball));
 
   if (ball != NULL) {
-    ball->center =
-        (Vector2){.x = GetScreenWidth() / 2.0f, .y = GetScreenHeight() / 2.0f};
+    ball->center = (Vector2){.x = GetMouseX() % GetScreenWidth(),
+                             .y = GetMouseY() % GetScreenHeight()};
 
     ball->previousCenter = ball->center;
 
-    ball->radius = 20.0f;
+    ball->radius = rand() % 20 + 15;
 
-    ball->velocity = (Vector2){.x = 150.0f, .y = 150.0f};
+    ball->velocity = (Vector2){.x = 10.0f, .y = 200.0f};
 
     ball->friction = 0.99f;
 
     ball->elasticity = 0.9f;
 
-    ball->color = BLUE;
+    ball->color = GetRandomColor();
   }
 
   return ball;
