@@ -10,7 +10,7 @@ int main(void) {
 
   struct Ball *ball = Ball();
 
-  while (!WindowShouldClose()) {
+  while (!WindowShouldClose() && !IsKeyPressed(KEY_Q)) {
     BeginDrawing();
 
     ClearBackground(WHITE);
