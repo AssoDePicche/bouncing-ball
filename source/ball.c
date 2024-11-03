@@ -2,6 +2,18 @@
 
 const float WORLD_GRAVITY = 9.81f;
 
+bool CollideWithScreenEdges(const struct Ball *ball) {
+  const bool right = GetScreenWidth() < ball->center.x + ball->radius;
+
+  const bool left = ball->center.x - ball->radius <= 0.0f;
+
+  const bool top = GetScreenHeight() < ball->center.y + ball->radius;
+
+  const bool bottom = ball->center.y - ball->radius <= 0.0f;
+
+  return right || left || top || bottom;
+}
+
 bool CollideWithPoint(const struct Ball *ball, const Vector2 point) {
   const float dx = point.x - ball->center.x;
 

@@ -15,6 +15,8 @@ struct Ball {
   bool floating;
 };
 
+bool CollideWithScreenEdges(const struct Ball *);
+
 bool CollideWithPoint(const struct Ball *, const Vector2);
 
 void DrawBall(const struct Ball *);
