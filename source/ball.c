@@ -1,15 +1,45 @@
 #include "ball.h"
 
+#include <stdlib.h>
+
 const float WORLD_GRAVITY = 9.81f;
 
+static Color GetRandomColor() {
+  const unsigned max = 255;
+
+  const unsigned red = rand() % (max + 1);
+
+  const unsigned green = rand() % (max + 1);
+
+  const unsigned blue = rand() % (max + 1);
+
+  return (Color){red, green, blue, max};
+}
+
+static bool CollideWithScreenRight(const struct Ball *ball) {
+  return GetScreenWidth() < ball->center.x + ball->radius;
+}
+
+static bool CollideWithScreenLeft(const struct Ball *ball) {
+  return ball->center.x - ball->radius <= 0.0f;
+}
+
+static bool CollideWithScreenTop(const struct Ball *ball) {
+  return ball->center.y - ball->radius <= 0.0f;
+}
+
+static bool CollideWithScreenBottom(const struct Ball *ball) {
+  return GetScreenHeight() < ball->center.y + ball->radius;
+}
+
 bool CollideWithScreenEdges(const struct Ball *ball) {
-  const bool right = GetScreenWidth() < ball->center.x + ball->radius;
+  const bool right = CollideWithScreenRight(ball);
 
-  const bool left = ball->center.x - ball->radius <= 0.0f;
+  const bool left = CollideWithScreenLeft(ball);
 
-  const bool top = GetScreenHeight() < ball->center.y + ball->radius;
+  const bool top = CollideWithScreenTop(ball);
 
-  const bool bottom = ball->center.y - ball->radius <= 0.0f;
+  const bool bottom = CollideWithScreenBottom(ball);
 
   return right || left || top || bottom;
 }
@@ -57,25 +87,29 @@ void UpdateBall(struct Ball *ball) {
 
   ball->center.y += ball->velocity.y * frameTime;
 
-  if (GetScreenWidth() < ball->center.x + ball->radius) {
+  if (CollideWithScreenEdges(ball) && !CollideWithScreenBottom(ball)) {
+    ball->color = GetRandomColor();
+  }
+
+  if (CollideWithScreenRight(ball)) {
     ball->center.x = GetScreenWidth() - ball->radius;
 
     ball->velocity.x = -ball->velocity.x * ball->elasticity;
   }
 
-  if (ball->center.x - ball->radius <= 0.0f) {
+  if (CollideWithScreenLeft(ball)) {
     ball->center.x = ball->radius;
 
     ball->velocity.x = -ball->velocity.x * ball->elasticity;
   }
 
-  if (GetScreenHeight() < ball->center.y + ball->radius) {
+  if (CollideWithScreenBottom(ball)) {
     ball->center.y = GetScreenHeight() - ball->radius;
 
     ball->velocity.y = -ball->velocity.y * ball->elasticity;
   }
 
-  if (ball->center.y - ball->radius <= 0.0f) {
+  if (CollideWithScreenTop(ball)) {
     ball->center.y = ball->radius;
 
     ball->velocity.y = -ball->velocity.y * ball->elasticity;
