@@ -4,16 +4,11 @@
 #include <raylib.h>
 #include <stdbool.h>
 
-struct Ball {
-  Vector2 center;
-  Vector2 previousCenter;
-  Vector2 velocity;
-  Color color;
-  float radius;
-  float friction;
-  float elasticity;
-  bool floating;
-};
+struct Ball;
+
+struct Ball *Ball(void);
+
+void FreeBall(struct Ball *);
 
 bool CollideWithScreenEdges(const struct Ball *);
 
