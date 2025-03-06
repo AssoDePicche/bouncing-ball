@@ -1,7 +1,10 @@
 #include <raylib.h>
+#include <raymath.h>
 #include <stddef.h>
 
 #include "ball.h"
+
+#define MAX_BALLS 32
 
 __attribute((constructor)) static void setup(void) {
   InitWindow(480, 480, "");
@@ -16,37 +19,57 @@ __attribute((constructor)) static void setup(void) {
 __attribute((destructor)) static void teardown(void) { CloseWindow(); }
 
 int main(void) {
-  struct Node *head = Node();
+  struct Ball *balls[MAX_BALLS];
+
+  size_t size = 0;
+
+  balls[size++] = Ball();
 
   while (!WindowShouldClose()) {
     BeginDrawing();
 
     ClearBackground(WHITE);
 
-    if (IsMouseButtonPressed(MOUSE_BUTTON_RIGHT)) {
-      head = PushFront(head);
+    if (IsMouseButtonPressed(MOUSE_BUTTON_RIGHT) && size < MAX_BALLS) {
+      balls[size++] = Ball();
     }
 
-    for (struct Node *node = head; node != NULL; node = node->next) {
-      UpdateBall(node->ball);
+    for (size_t i = 0; i < size; ++i) {
+      for (size_t j = 0; j < size; ++j) {
+        if (i == j) {
+          continue;
+        }
 
-      DrawBall(node->ball);
+        Vector2 force = GetCollisionForce(balls[i], balls[j]);
+
+        ApplyForce(balls[i], force);
+
+        ApplyForce(balls[j], Vector2Negate(force));
+      }
+
+      UpdateBall(balls[i]);
+
+      DrawBall(balls[i]);
     }
 
-    const char *copyright = "AssoDePicche © 2024";
+    const char *copyright = "AssoDePicche © 2025";
 
     const int fontSize = 16;
 
-    const int size = MeasureText(copyright, fontSize);
+    DrawText(copyright, 20, 20, fontSize, DARKGRAY);
 
-    const int x = (GetScreenWidth() - size) / 2;
+    const char *hud = TextFormat("Particles: %zu", size);
 
-    DrawText(copyright, x, 40, fontSize, GRAY);
+    const int size = MeasureText(hud, fontSize);
+
+    DrawText(hud, GetScreenWidth() - size - 20, 20, fontSize, DARKGRAY);
 
     EndDrawing();
   }
 
-  FreeNode(head);
+  for (size_t index = 0; index < size; ++index) {
+    FreeBall(balls[index]);
+  }
 
   return 0;
 }
