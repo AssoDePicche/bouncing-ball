@@ -1,5 +1,7 @@
 #include "ball.h"
 
+#include <math.h>
+#include <raymath.h>
 #include <stddef.h>
 
 struct Ball {
@@ -106,6 +108,36 @@ bool CollideWithPoint(const struct Ball *this, const Vector2 point) {
   const float dy = point.y - this->center.y;
 
   return dx * dx + dy * dy <= this->radius * this->radius;
+}
+
+bool CollideWithBall(const struct Ball *this, const struct Ball *other) {
+  return CheckCollisionCircles(this->center, this->radius, other->center,
+                               other->radius);
+}
+
+Vector2 GetCollisionForce(const struct Ball *this, const struct Ball *other) {
+  if (!CollideWithBall(this, other)) {
+    return Vector2Zero();
+  }
+
+  const float dx = (this->center.x - other->center.x);
+
+  const float dy = (this->center.y - other->center.y);
+
+  const float r = sqrt(dx * dx + dy * dy);
+
+  const float force = (WORLD_GRAVITY * this->mass * other->mass) / r * r;
+
+  return (Vector2){
+      .x = (dx / r) * force / this->mass,
+      .y = (dy / r) * force / this->mass,
+  };
+}
+
+void ApplyForce(struct Ball *this, const Vector2 force) {
+  this->velocity.x += force.x;
+
+  this->velocity.y += force.y;
 }
 
 void DrawBall(const struct Ball *this) {
