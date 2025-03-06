@@ -10,6 +10,7 @@ struct Ball {
   float radius;
   float friction;
   float elasticity;
+  float mass;
   bool floating;
 };
 
@@ -71,6 +72,8 @@ struct Ball *Ball(void) {
   this->friction = 0.99f;
 
   this->elasticity = 0.9f;
+
+  this->mass = GetRandomValue(1.0f, 5.0f);
 
   this->color = GetRandomColor();
 
@@ -173,7 +176,8 @@ void UpdateBall(struct Ball *this) {
 
   this->velocity.x = this->velocity.x * this->friction;
 
-  this->velocity.y = this->velocity.y * this->friction + WORLD_GRAVITY;
+  this->velocity.y =
+      this->velocity.y * this->friction + WORLD_GRAVITY * this->mass;
 }
 
 struct Node *Node(void) {
