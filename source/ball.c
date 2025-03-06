@@ -90,18 +90,6 @@ void FreeBall(struct Ball *this) {
   MemFree(this);
 }
 
-bool CollideWithScreenEdges(const struct Ball *this) {
-  const bool right = CollideWithScreenRight(this);
-
-  const bool left = CollideWithScreenLeft(this);
-
-  const bool top = CollideWithScreenTop(this);
-
-  const bool bottom = CollideWithScreenBottom(this);
-
-  return right || left || top || bottom;
-}
-
 bool CollideWithPoint(const struct Ball *this, const Vector2 point) {
   const float dx = point.x - this->center.x;
 
@@ -178,10 +166,6 @@ void UpdateBall(struct Ball *this) {
 
   this->center.y += this->velocity.y * frameTime;
 
-  if (CollideWithScreenEdges(this) && !CollideWithScreenBottom(this)) {
-    this->color = GetRandomColor();
-  }
-
   if (CollideWithScreenLeft(this) || CollideWithScreenRight(this)) {
     this->velocity.x = -this->velocity.x * this->elasticity;
   }
@@ -210,48 +194,4 @@ void UpdateBall(struct Ball *this) {
 
   this->velocity.y =
       this->velocity.y * this->friction + WORLD_GRAVITY * this->mass;
-}
-
-struct Node *Node(void) {
-  struct Node *node = (struct Node *)MemAlloc(sizeof(struct Node));
-
-  if (node != NULL) {
-    node->next = NULL;
-
-    node->ball = Ball();
-  }
-
-  return node;
-}
-
-void FreeNode(struct Node *this) {
-  while (NULL != this) {
-    this = PopFront(this);
-  }
-}
-
-struct Node *PushFront(struct Node *this) {
-  struct Node *node = Node();
-
-  node->next = this;
-
-  this = node;
-
-  return this;
-}
-
-struct Node *PopFront(struct Node *this) {
-  if (this == NULL) {
-    return NULL;
-  }
-
-  struct Node *node = this;
-
-  this = this->next;
-
-  FreeBall(node->ball);
-
-  MemFree(node);
-
-  return this;
 }
