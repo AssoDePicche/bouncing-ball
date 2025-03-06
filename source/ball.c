@@ -27,137 +27,181 @@ static Color GetRandomColor() {
   return (Color){red, green, blue, max};
 }
 
-static bool CollideWithScreenRight(const struct Ball *ball) {
-  return GetScreenWidth() < ball->center.x + ball->radius;
+static bool CollideWithScreenRight(const struct Ball *this) {
+  return GetScreenWidth() < this->center.x + this->radius;
 }
 
-static bool CollideWithScreenLeft(const struct Ball *ball) {
-  return ball->center.x - ball->radius <= 0.0f;
+static bool CollideWithScreenLeft(const struct Ball *this) {
+  return this->center.x - this->radius <= 0.0f;
 }
 
-static bool CollideWithScreenTop(const struct Ball *ball) {
-  return ball->center.y - ball->radius <= 0.0f;
+static bool CollideWithScreenTop(const struct Ball *this) {
+  return this->center.y - this->radius <= 0.0f;
 }
 
-static bool CollideWithScreenBottom(const struct Ball *ball) {
-  return GetScreenHeight() < ball->center.y + ball->radius;
+static bool CollideWithScreenBottom(const struct Ball *this) {
+  return GetScreenHeight() < this->center.y + this->radius;
 }
 
 struct Ball *Ball(void) {
-  struct Ball *ball = (struct Ball *)malloc(sizeof(struct Ball));
+  struct Ball *this = (struct Ball *)malloc(sizeof(struct Ball));
 
-  if (ball != NULL) {
-    ball->center = (Vector2){.x = GetMouseX() % GetScreenWidth(),
+  if (NULL != this) {
+    this->center = (Vector2){.x = GetMouseX() % GetScreenWidth(),
                              .y = GetMouseY() % GetScreenHeight()};
 
-    ball->previousCenter = ball->center;
+    this->previousCenter = this->center;
 
-    ball->radius = rand() % 20 + 15;
+    this->radius = rand() % 20 + 15;
 
-    ball->velocity = (Vector2){.x = 10.0f, .y = 200.0f};
+    this->velocity = (Vector2){.x = 10.0f, .y = 200.0f};
 
-    ball->friction = 0.99f;
+    this->friction = 0.99f;
 
-    ball->elasticity = 0.9f;
+    this->elasticity = 0.9f;
 
-    ball->color = GetRandomColor();
+    this->color = GetRandomColor();
   }
 
-  return ball;
+  return this;
 }
 
-void FreeBall(struct Ball *ball) {
-  if (ball == NULL) {
+void FreeBall(struct Ball *this) {
+  if (NULL == this) {
     return;
   }
 
-  free(ball);
+  free(this);
 }
 
-bool CollideWithScreenEdges(const struct Ball *ball) {
-  const bool right = CollideWithScreenRight(ball);
+bool CollideWithScreenEdges(const struct Ball *this) {
+  const bool right = CollideWithScreenRight(this);
 
-  const bool left = CollideWithScreenLeft(ball);
+  const bool left = CollideWithScreenLeft(this);
 
-  const bool top = CollideWithScreenTop(ball);
+  const bool top = CollideWithScreenTop(this);
 
-  const bool bottom = CollideWithScreenBottom(ball);
+  const bool bottom = CollideWithScreenBottom(this);
 
   return right || left || top || bottom;
 }
 
-bool CollideWithPoint(const struct Ball *ball, const Vector2 point) {
-  const float dx = point.x - ball->center.x;
+bool CollideWithPoint(const struct Ball *this, const Vector2 point) {
+  const float dx = point.x - this->center.x;
 
-  const float dy = point.y - ball->center.y;
+  const float dy = point.y - this->center.y;
 
-  return dx * dx + dy * dy <= ball->radius * ball->radius;
+  return dx * dx + dy * dy <= this->radius * this->radius;
 }
 
-void DrawBall(const struct Ball *ball) {
-  DrawCircle((int)ball->center.x, (int)ball->center.y, ball->radius,
-             ball->color);
+void DrawBall(const struct Ball *this) {
+  DrawCircle((int)this->center.x, (int)this->center.y, this->radius,
+             this->color);
 }
 
-void UpdateBall(struct Ball *ball) {
+void UpdateBall(struct Ball *this) {
   const float frameTime = GetFrameTime();
 
   const Vector2 point = (Vector2){.x = GetMouseX(), .y = GetMouseY()};
 
   if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) &&
-      CollideWithPoint(ball, point)) {
-    ball->floating = true;
+      CollideWithPoint(this, point)) {
+    this->floating = true;
   }
 
   if (IsMouseButtonUp(MOUSE_BUTTON_LEFT)) {
-    ball->floating = false;
+    this->floating = false;
   }
 
-  if (ball->floating) {
-    ball->center = GetMousePosition();
+  if (this->floating) {
+    this->center = GetMousePosition();
 
-    ball->velocity.x = (ball->center.x - ball->previousCenter.x) / frameTime;
+    this->velocity.x = (this->center.x - this->previousCenter.x) / frameTime;
 
-    ball->velocity.y = (ball->center.y - ball->previousCenter.y) / frameTime;
+    this->velocity.y = (this->center.y - this->previousCenter.y) / frameTime;
 
-    ball->previousCenter = ball->center;
+    this->previousCenter = this->center;
 
     return;
   }
 
-  ball->center.x += ball->velocity.x * frameTime;
+  this->center.x += this->velocity.x * frameTime;
 
-  ball->center.y += ball->velocity.y * frameTime;
+  this->center.y += this->velocity.y * frameTime;
 
-  if (CollideWithScreenEdges(ball) && !CollideWithScreenBottom(ball)) {
-    ball->color = GetRandomColor();
+  if (CollideWithScreenEdges(this) && !CollideWithScreenBottom(this)) {
+    this->color = GetRandomColor();
   }
 
-  if (CollideWithScreenRight(ball)) {
-    ball->center.x = GetScreenWidth() - ball->radius;
+  if (CollideWithScreenRight(this)) {
+    this->center.x = GetScreenWidth() - this->radius;
 
-    ball->velocity.x = -ball->velocity.x * ball->elasticity;
+    this->velocity.x = -this->velocity.x * this->elasticity;
   }
 
-  if (CollideWithScreenLeft(ball)) {
-    ball->center.x = ball->radius;
+  if (CollideWithScreenLeft(this)) {
+    this->center.x = this->radius;
 
-    ball->velocity.x = -ball->velocity.x * ball->elasticity;
+    this->velocity.x = -this->velocity.x * this->elasticity;
   }
 
-  if (CollideWithScreenBottom(ball)) {
-    ball->center.y = GetScreenHeight() - ball->radius;
+  if (CollideWithScreenBottom(this)) {
+    this->center.y = GetScreenHeight() - this->radius;
 
-    ball->velocity.y = -ball->velocity.y * ball->elasticity;
+    this->velocity.y = -this->velocity.y * this->elasticity;
   }
 
-  if (CollideWithScreenTop(ball)) {
-    ball->center.y = ball->radius;
+  if (CollideWithScreenTop(this)) {
+    this->center.y = this->radius;
 
-    ball->velocity.y = -ball->velocity.y * ball->elasticity;
+    this->velocity.y = -this->velocity.y * this->elasticity;
   }
 
-  ball->velocity.x = ball->velocity.x * ball->friction;
+  this->velocity.x = this->velocity.x * this->friction;
 
-  ball->velocity.y = ball->velocity.y * ball->friction + WORLD_GRAVITY;
+  this->velocity.y = this->velocity.y * this->friction + WORLD_GRAVITY;
+}
+
+struct Node *Node(void) {
+  struct Node *node = (struct Node *)malloc(sizeof(struct Node));
+
+  if (node != NULL) {
+    node->next = NULL;
+
+    node->ball = Ball();
+  }
+
+  return node;
+}
+
+void FreeNode(struct Node *this) {
+  while (NULL != this) {
+    this = PopFront(this);
+  }
+}
+
+struct Node *PushFront(struct Node *this) {
+  struct Node *node = Node();
+
+  node->next = this;
+
+  this = node;
+
+  return this;
+}
+
+struct Node *PopFront(struct Node *this) {
+  if (this == NULL) {
+    return NULL;
+  }
+
+  struct Node *node = this;
+
+  this = this->next;
+
+  FreeBall(node->ball);
+
+  free(node);
+
+  return this;
 }
