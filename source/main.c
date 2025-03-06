@@ -1,16 +1,24 @@
 #include <raylib.h>
-#include <stdlib.h>
+#include <stddef.h>
 
 #include "ball.h"
 
-int main(void) {
+__attribute((constructor)) static void setup(void) {
   InitWindow(480, 480, "");
 
   SetTargetFPS(60);
 
+  SetExitKey(KEY_Q);
+
+  SetRandomSeed(0);
+}
+
+__attribute((destructor)) static void teardown(void) { CloseWindow(); }
+
+int main(void) {
   struct Node *head = Node();
 
-  while (!WindowShouldClose() && !IsKeyPressed(KEY_Q)) {
+  while (!WindowShouldClose()) {
     BeginDrawing();
 
     ClearBackground(WHITE);
@@ -37,8 +45,6 @@ int main(void) {
 
     EndDrawing();
   }
-
-  CloseWindow();
 
   FreeNode(head);
 
