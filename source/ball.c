@@ -1,6 +1,6 @@
 #include "ball.h"
 
-#include <stdlib.h>
+#include <stddef.h>
 
 struct Ball {
   Vector2 center;
@@ -15,16 +15,13 @@ struct Ball {
 
 const float WORLD_GRAVITY = 9.81f;
 
-static Color GetRandomColor() {
-  const unsigned max = 255;
-
-  const unsigned red = rand() % (max + 1);
-
-  const unsigned green = rand() % (max + 1);
-
-  const unsigned blue = rand() % (max + 1);
-
-  return (Color){red, green, blue, max};
+static Color GetRandomColor(void) {
+  return (Color){
+      .r = GetRandomValue(0, 255),
+      .g = GetRandomValue(0, 255),
+      .b = GetRandomValue(0, 255),
+      .a = 255,
+  };
 }
 
 static bool CollideWithScreenRight(const struct Ball *this) {
@@ -44,24 +41,38 @@ static bool CollideWithScreenBottom(const struct Ball *this) {
 }
 
 struct Ball *Ball(void) {
-  struct Ball *this = (struct Ball *)malloc(sizeof(struct Ball));
+  struct Ball *this = (struct Ball *)MemAlloc(sizeof(struct Ball));
 
-  if (NULL != this) {
-    this->center = (Vector2){.x = GetMouseX() % GetScreenWidth(),
-                             .y = GetMouseY() % GetScreenHeight()};
-
-    this->previousCenter = this->center;
-
-    this->radius = rand() % 20 + 15;
-
-    this->velocity = (Vector2){.x = 10.0f, .y = 200.0f};
-
-    this->friction = 0.99f;
-
-    this->elasticity = 0.9f;
-
-    this->color = GetRandomColor();
+  if (NULL == this) {
+    return NULL;
   }
+
+  if (IsMouseButtonPressed(MOUSE_BUTTON_RIGHT)) {
+    this->center = (Vector2){
+        .x = GetMouseX() % GetScreenWidth(),
+        .y = GetMouseY() % GetScreenHeight(),
+    };
+  } else {
+    this->center = (Vector2){
+        .x = GetScreenWidth() / 2.0f,
+        .y = GetScreenHeight() / 2.0f,
+    };
+  }
+
+  this->previousCenter = this->center;
+
+  this->radius = GetRandomValue(20, 35);
+
+  this->velocity = (Vector2){
+      .x = 0.0f,
+      .y = GetRandomValue(100.0f, 200.0f),
+  };
+
+  this->friction = 0.99f;
+
+  this->elasticity = 0.9f;
+
+  this->color = GetRandomColor();
 
   return this;
 }
@@ -71,7 +82,7 @@ void FreeBall(struct Ball *this) {
     return;
   }
 
-  free(this);
+  MemFree(this);
 }
 
 bool CollideWithScreenEdges(const struct Ball *this) {
@@ -102,7 +113,10 @@ void DrawBall(const struct Ball *this) {
 void UpdateBall(struct Ball *this) {
   const float frameTime = GetFrameTime();
 
-  const Vector2 point = (Vector2){.x = GetMouseX(), .y = GetMouseY()};
+  const Vector2 point = (Vector2){
+      .x = GetMouseX(),
+      .y = GetMouseY(),
+  };
 
   if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) &&
       CollideWithPoint(this, point)) {
@@ -133,28 +147,28 @@ void UpdateBall(struct Ball *this) {
     this->color = GetRandomColor();
   }
 
+  if (CollideWithScreenLeft(this) || CollideWithScreenRight(this)) {
+    this->velocity.x = -this->velocity.x * this->elasticity;
+  }
+
+  if (CollideWithScreenBottom(this) || CollideWithScreenTop(this)) {
+    this->velocity.y = -this->velocity.y * this->elasticity;
+  }
+
   if (CollideWithScreenRight(this)) {
     this->center.x = GetScreenWidth() - this->radius;
-
-    this->velocity.x = -this->velocity.x * this->elasticity;
   }
 
   if (CollideWithScreenLeft(this)) {
     this->center.x = this->radius;
-
-    this->velocity.x = -this->velocity.x * this->elasticity;
   }
 
   if (CollideWithScreenBottom(this)) {
     this->center.y = GetScreenHeight() - this->radius;
-
-    this->velocity.y = -this->velocity.y * this->elasticity;
   }
 
   if (CollideWithScreenTop(this)) {
     this->center.y = this->radius;
-
-    this->velocity.y = -this->velocity.y * this->elasticity;
   }
 
   this->velocity.x = this->velocity.x * this->friction;
@@ -163,7 +177,7 @@ void UpdateBall(struct Ball *this) {
 }
 
 struct Node *Node(void) {
-  struct Node *node = (struct Node *)malloc(sizeof(struct Node));
+  struct Node *node = (struct Node *)MemAlloc(sizeof(struct Node));
 
   if (node != NULL) {
     node->next = NULL;
@@ -201,7 +215,7 @@ struct Node *PopFront(struct Node *this) {
 
   FreeBall(node->ball);
 
-  free(node);
+  MemFree(node);
 
   return this;
 }
