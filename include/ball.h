@@ -12,11 +12,7 @@ void FreeBall(struct Ball *);
 
 bool CollideWithPoint(const struct Ball *, const Vector2);
 
-bool CollideWithBall(const struct Ball *, const struct Ball *);
-
-Vector2 GetCollisionForce(const struct Ball *, const struct Ball *);
-
-void ApplyForce(struct Ball *, const Vector2);
+void Collide(struct Ball *, struct Ball *);
 
 void DrawBall(const struct Ball *);
 

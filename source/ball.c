@@ -98,14 +98,10 @@ bool CollideWithPoint(const struct Ball *this, const Vector2 point) {
   return dx * dx + dy * dy <= this->radius * this->radius;
 }
 
-bool CollideWithBall(const struct Ball *this, const struct Ball *other) {
-  return CheckCollisionCircles(this->center, this->radius, other->center,
-                               other->radius);
-}
-
-Vector2 GetCollisionForce(const struct Ball *this, const struct Ball *other) {
-  if (!CollideWithBall(this, other)) {
-    return Vector2Zero();
+void Collide(struct Ball *this, struct Ball *other) {
+  if (!CheckCollisionCircles(this->center, this->radius, other->center,
+                             other->radius)) {
+    return;
   }
 
   const float dx = (this->center.x - other->center.x);
@@ -116,16 +112,14 @@ Vector2 GetCollisionForce(const struct Ball *this, const struct Ball *other) {
 
   const float force = (WORLD_GRAVITY * this->mass * other->mass) / r * r;
 
-  return (Vector2){
+  const Vector2 f = (Vector2){
       .x = (dx / r) * force / this->mass,
       .y = (dy / r) * force / this->mass,
   };
-}
 
-void ApplyForce(struct Ball *this, const Vector2 force) {
-  this->velocity.x += force.x;
+  this->velocity = Vector2Add(this->velocity, f);
 
-  this->velocity.y += force.y;
+  other->velocity = Vector2Add(other->velocity, Vector2Negate(f));
 }
 
 void DrawBall(const struct Ball *this) {

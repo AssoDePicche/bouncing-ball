@@ -40,11 +40,7 @@ int main(void) {
           continue;
         }
 
-        Vector2 force = GetCollisionForce(balls[i], balls[j]);
-
-        ApplyForce(balls[i], force);
-
-        ApplyForce(balls[j], Vector2Negate(force));
+        Collide(balls[i], balls[j]);
       }
 
       UpdateBall(balls[i]);
