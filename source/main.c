@@ -43,7 +43,7 @@ int main(void) {
         Collide(balls[i], balls[j]);
       }
 
-      UpdateBall(balls[i]);
+      UpdateBall(balls[i], GetFrameTime());
 
       DrawBall(balls[i]);
     }

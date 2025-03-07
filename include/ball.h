@@ -16,6 +16,6 @@ void Collide(struct Ball *, struct Ball *);
 
 void DrawBall(const struct Ball *);
 
-void UpdateBall(struct Ball *);
+void UpdateBall(struct Ball *, const float);
 
 #endif

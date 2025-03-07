@@ -127,16 +127,9 @@ void DrawBall(const struct Ball *this) {
              this->color);
 }
 
-void UpdateBall(struct Ball *this) {
-  const float frameTime = GetFrameTime();
-
-  const Vector2 point = (Vector2){
-      .x = GetMouseX(),
-      .y = GetMouseY(),
-  };
-
+void UpdateBall(struct Ball *this, const float dt) {
   if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) &&
-      CollideWithPoint(this, point)) {
+      CollideWithPoint(this, GetMousePosition())) {
     this->floating = true;
   }
 
@@ -147,18 +140,15 @@ void UpdateBall(struct Ball *this) {
   if (this->floating) {
     this->center = GetMousePosition();
 
-    this->velocity.x = (this->center.x - this->previousCenter.x) / frameTime;
-
-    this->velocity.y = (this->center.y - this->previousCenter.y) / frameTime;
+    this->velocity = Vector2Scale(
+        Vector2Subtract(this->center, this->previousCenter), 1 / dt);
 
     this->previousCenter = this->center;
 
     return;
   }
 
-  this->center.x += this->velocity.x * frameTime;
-
-  this->center.y += this->velocity.y * frameTime;
+  this->center = Vector2Add(this->center, Vector2Scale(this->velocity, dt));
 
   if (CollideWithScreenLeft(this) || CollideWithScreenRight(this)) {
     this->velocity.x = -this->velocity.x * this->elasticity;
