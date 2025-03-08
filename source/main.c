@@ -7,7 +7,7 @@
 #define MAX_BALLS 32
 
 __attribute((constructor)) static void setup(void) {
-  InitWindow(480, 480, "");
+  InitWindow(640, 640, "Bouncing Balls");
 
   SetTargetFPS(60);
 
@@ -44,13 +44,15 @@ int main(void) {
       }
 
       UpdateBall(balls[i], GetFrameTime());
+    }
 
-      DrawBall(balls[i]);
+    for (size_t index = 0; index < size; ++index) {
+      DrawBall(balls[index]);
     }
 
     const char *copyright = "AssoDePicche © 2025";
 
-    const int fontSize = 16;
+    const int fontSize = 20;
 
     DrawText(copyright, 20, 20, fontSize, DARKGRAY);
 
