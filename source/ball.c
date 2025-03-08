@@ -99,27 +99,39 @@ bool CollideWithPoint(const struct Ball *this, const Vector2 point) {
 }
 
 void Collide(struct Ball *this, struct Ball *other) {
-  if (!CheckCollisionCircles(this->center, this->radius, other->center,
-                             other->radius)) {
+  Vector2 r = Vector2Subtract(other->center, this->center);
+
+  float distance = Vector2Length(r);
+
+  if (this->radius + other->radius < distance) {
     return;
   }
 
-  const float dx = (this->center.x - other->center.x);
+  float overlap = distance - (this->radius + other->radius);
 
-  const float dy = (this->center.y - other->center.y);
+  Vector2 t = Vector2Scale(r, (overlap * 0.5f) / distance);
 
-  const float r = sqrt(dx * dx + dy * dy);
+  this->center = Vector2Add(this->center, t);
 
-  const float force = (WORLD_GRAVITY * this->mass * other->mass) / r * r;
+  other->center = Vector2Subtract(other->center, t);
 
-  const Vector2 f = (Vector2){
-      .x = (dx / r) * force / this->mass,
-      .y = (dy / r) * force / this->mass,
-  };
+  r = Vector2Scale(r, (this->radius + other->radius) / distance);
 
-  this->velocity = Vector2Add(this->velocity, f);
+  distance = this->radius + other->radius;
 
-  other->velocity = Vector2Add(other->velocity, Vector2Negate(f));
+  float masses = this->mass + other->mass;
+
+  Vector2 v = Vector2Subtract(other->velocity, this->velocity);
+
+  float k = Vector2DotProduct(v, r);
+
+  float z = masses * distance * distance;
+
+  this->velocity =
+      Vector2Add(this->velocity, Vector2Scale(r, 2.0f * other->mass * k / z));
+
+  other->velocity =
+      Vector2Add(other->velocity, Vector2Scale(r, -2.0f * this->mass * k / z));
 }
 
 void DrawBall(const struct Ball *this) {
