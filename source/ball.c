@@ -4,6 +4,10 @@
 #include <raymath.h>
 #include <stddef.h>
 
+#ifndef __WORLD_GRAVITY__
+#define __WORLD_GRAVITY__ 9.81f
+#endif
+
 struct Ball {
   Vector2 center;
   Vector2 previousCenter;
@@ -16,8 +20,6 @@ struct Ball {
   bool floating;
 };
 
-const float WORLD_GRAVITY = 9.81f;
-
 static Color GetRandomColor(void) {
   return (Color){
       .r = GetRandomValue(0, 255),
@@ -25,22 +27,6 @@ static Color GetRandomColor(void) {
       .b = GetRandomValue(0, 255),
       .a = 255,
   };
-}
-
-static bool CollideWithScreenRight(const struct Ball *this) {
-  return GetScreenWidth() < this->center.x + this->radius;
-}
-
-static bool CollideWithScreenLeft(const struct Ball *this) {
-  return this->center.x - this->radius <= 0.0f;
-}
-
-static bool CollideWithScreenTop(const struct Ball *this) {
-  return this->center.y - this->radius <= 0.0f;
-}
-
-static bool CollideWithScreenBottom(const struct Ball *this) {
-  return GetScreenHeight() < this->center.y + this->radius;
 }
 
 struct Ball *Ball(void) {
@@ -103,35 +89,32 @@ void Collide(struct Ball *this, struct Ball *other) {
 
   float distance = Vector2Length(r);
 
-  if (this->radius + other->radius < distance) {
+  float tangent = this->radius + other->radius;
+
+  if (tangent < distance) {
     return;
   }
 
-  float overlap = distance - (this->radius + other->radius);
-
-  Vector2 t = Vector2Scale(r, (overlap * 0.5f) / distance);
+  Vector2 t = Vector2Scale(r, 0.5f * (distance - tangent) / distance);
 
   this->center = Vector2Add(this->center, t);
 
   other->center = Vector2Subtract(other->center, t);
 
-  r = Vector2Scale(r, (this->radius + other->radius) / distance);
-
-  distance = this->radius + other->radius;
-
-  float masses = this->mass + other->mass;
+  r = Vector2Scale(r, tangent / distance);
 
   Vector2 v = Vector2Subtract(other->velocity, this->velocity);
 
-  float k = Vector2DotProduct(v, r);
+  float k = 2.0f * Vector2DotProduct(v, r);
 
-  float z = masses * distance * distance;
+  float z = (this->mass + other->mass) * tangent * tangent;
 
-  this->velocity =
-      Vector2Add(this->velocity, Vector2Scale(r, 2.0f * other->mass * k / z));
+  k /= z;
+
+  this->velocity = Vector2Add(this->velocity, Vector2Scale(r, k * other->mass));
 
   other->velocity =
-      Vector2Add(other->velocity, Vector2Scale(r, -2.0f * this->mass * k / z));
+      Vector2Add(other->velocity, Vector2Scale(r, -k * this->mass));
 }
 
 void DrawBall(const struct Ball *this) {
@@ -162,32 +145,34 @@ void UpdateBall(struct Ball *this, const float dt) {
 
   this->center = Vector2Add(this->center, Vector2Scale(this->velocity, dt));
 
-  if (CollideWithScreenLeft(this) || CollideWithScreenRight(this)) {
+  if ((this->center.x - this->radius <= 0.0f) ||
+      (GetScreenWidth() < this->center.x + this->radius)) {
     this->velocity.x = -this->velocity.x * this->elasticity;
   }
 
-  if (CollideWithScreenBottom(this) || CollideWithScreenTop(this)) {
+  if ((GetScreenHeight() < this->center.y + this->radius) ||
+      (this->center.y - this->radius <= 0.0f)) {
     this->velocity.y = -this->velocity.y * this->elasticity;
   }
 
-  if (CollideWithScreenRight(this)) {
+  if (GetScreenWidth() < this->center.x + this->radius) {
     this->center.x = GetScreenWidth() - this->radius;
   }
 
-  if (CollideWithScreenLeft(this)) {
+  if (this->center.x - this->radius <= 0.0f) {
     this->center.x = this->radius;
   }
 
-  if (CollideWithScreenBottom(this)) {
+  if (GetScreenHeight() < this->center.y + this->radius) {
     this->center.y = GetScreenHeight() - this->radius;
   }
 
-  if (CollideWithScreenTop(this)) {
+  if (this->center.y - this->radius <= 0.0f) {
     this->center.y = this->radius;
   }
 
   this->velocity.x = this->velocity.x * this->friction;
 
   this->velocity.y =
-      this->velocity.y * this->friction + WORLD_GRAVITY * this->mass;
+      this->velocity.y * this->friction + __WORLD_GRAVITY__ * this->mass;
 }
